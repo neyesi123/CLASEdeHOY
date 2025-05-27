@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro </title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+ 
+</head>
+<link rel="stylesheet" href="estilo.css">
+<body>
+  <div class="container">
+    <header>
+    
+      <h1>Registro de Diagnostico Segun el Padecimiento de cada Paciente</h1>
+    </header>
+
+    <form id="paciente-form">
+      <label>Nombre:<input type="text" id="nombre" required></label>
+      <label>Edad:<input type="number" id="edad" required></label>
+      <label>Peso (kg):<input type="number" id="peso" required></label>
+      <label>Talla (cm):<input type="number" id="talla" required></label>
+      <label>Padecimiento:<input type="text" id="padecimiento" required></label>
+      <label>Dosis Recibida (mg):<input type="number" id="dosis" required></label>
+      <button type="submit">Registrar Paciente</button>
+    </form>
+
+    <section>
+      <h2>Datos Registrados de cada Paciente</h2>
+      <table id="tabla-datos">
+        <thead>
+          <tr>
+            <th>Nombre</th><th>Edad</th><th>Peso</th><th>Talla</th><th>Padecimiento</th><th>Dosis (mg)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Gráfica Segun las dosis que recibe cada Paciente</h2>
+      <canvas id="graficaDosis" height="100"></canvas>
+    </section>
+
+    <section>
+      <h2>Registro de Temperatura</h2>
+      <form id="temperatura-form">
+        <label>Hora (HH:MM):<input type="time" id="hora" required></label>
+        <label>Temperatura (°C):<input type="number" step="0.1" id="temperatura" required></label>
+        <button type="submit">Registrar Temperatura</button>
+      </form>
+      <canvas id="graficaTemperatura" height="100"></canvas>
+    </section>
+  </div>
+
+  <script>
+    const pacientes = [];
+    const temperaturas = [];
+
+    document.getElementById('paciente-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const nombre = document.getElementById('nombre').value;
+      const edad = parseInt(document.getElementById('edad').value);
+      const peso = parseFloat(document.getElementById('peso').value);
+      const talla = parseFloat(document.getElementById('talla').value);
+      const padecimiento = document.getElementById('padecimiento').value;
+      const dosis = parseFloat(document.getElementById('dosis').value);
+
+      pacientes.push({ nombre, edad, peso, talla, padecimiento, dosis });
+      actualizarTabla();
+      actualizarGraficaDosis();
+      this.reset();
+    });
+
+    function actualizarTabla() {
+      const tbody = document.querySelector('#tabla-datos tbody');
+      tbody.innerHTML = '';
+      pacientes.forEach(p => {
+        const row = `<tr>
+          <td>${p.nombre}</td><td>${p.edad}</td><td>${p.peso}</td>
+          <td>${p.talla}</td><td>${p.padecimiento}</td><td>${p.dosis}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    let graficaDosis;
+    function actualizarGraficaDosis() {
+      const ctx = document.getElementById('graficaDosis').getContext('2d');
+      const nombres = pacientes.map(p => p.nombre);
+      const dosis = pacientes.map(p => p.dosis);
+
+      if (graficaDosis) graficaDosis.destroy();
+      graficaDosis = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: nombres,
+          datasets: [{
+            label: 'Dosis Recibida (mg)',
+            data: dosis,
+            backgroundColor: 'rgba(0, 123, 255, 0.6)',
+            borderColor: 'rgba(0, 123, 255, 1)',
+            borderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: 'Miligramos (mg)' }
+            },
+            x: {
+              title: { display: true, text: 'Nombre del Paciente' }
+            }
+          }
+        }
+      });
+    }
+
+    let graficaTemp;
+    document.getElementById('temperatura-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const hora = document.getElementById('hora').value;
+      const temp = parseFloat(document.getElementById('temperatura').value);
+      temperaturas.push({ hora, temp });
+      actualizarGraficaTemp();
+      this.reset();
+    });
+
+    function actualizarGraficaTemp() {
+      const ctx = document.getElementById('graficaTemperatura').getContext('2d');
+      const horas = temperaturas.map(t => t.hora);
+      const valores = temperaturas.map(t => t.temp);
+
+      if (graficaTemp) graficaTemp.destroy();
+      graficaTemp = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: horas,
+          datasets: [{
+            label: 'Temperatura Corporal (°C)',
+            data: valores,
+            fill: false,
+            borderColor: 'rgba(255, 99, 132, 1)',
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            tension: 0.3,
+            pointRadius: 5,
+            pointHoverRadius: 7
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              title: { display: true, text: 'Temperatura (°C)' }
+            },
+            x: {
+              title: { display: true, text: 'Hora' }
+            }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
